@@ -26,29 +26,22 @@ class CountryRouter(countryService: CountryService)(implicit ex: ExecutionContex
     createCountryCurrency.toRoute((countryService.createCountryCurrency _).andThen(handleErrors)) ~
     deleteCountryCurrency.toRoute((countryService.deleteCountryCurrency _).andThen(handleErrors)) ~
     findCountryCurrency.toRoute((countryService.findCountryCurrency _).andThen(handleErrors)) ~
+    findAllCountryCurrencies.toRoute((countryService.findAllCountryCurrencies _).andThen(handleErrors)) ~
     createCountryTelephonePrefix.toRoute((countryService.createCountryTelephonePrefix _).andThen(handleErrors)) ~
-    deleteCountryCurrency.toRoute((countryService.deleteCountryCurrency _).andThen(handleErrors)) ~
-    findCountryCurrency.toRoute((countryService.findCountryCurrency _).andThen(handleErrors))
+    deleteCountryTelephonePrefix.toRoute((countryService.deleteCountryTelephonePrefix _).andThen(handleErrors)) ~
+    findCountryTelephonePrefix.toRoute((countryService.findCountryTelephonePrefix _).andThen(handleErrors)) ~
+    findAllCountryTelephonePrefixes.toRoute((countryService.findAllTelephonePrefixes _).andThen(handleErrors))
 
-  val docsRoutes: Route = new SwaggerAkka(openapiYamlDocumentation).routes
-
-  val routesWithDocs: Route = routes ~ docsRoutes
-
-  def openapiYamlDocumentation: String = {
-    import sttp.tapir.docs.openapi._
-    import sttp.tapir.openapi.circe.yaml._
-
-    // interpreting the endpoint description to generate yaml openapi documentation
-    val docs = List(
-      createCountryCurrency,
-      deleteCountryCurrency,
-      findCountryCurrency,
-      createCountryTelephonePrefix,
-      deleteCountryTelephonePrefix,
-      findCountryTelephonePrefix
-    ).toOpenAPI("Ticket reservations", "1.0")
-    docs.toYaml
-  }
+  val endpoints = List(
+    createCountryCurrency,
+    deleteCountryCurrency,
+    findCountryCurrency,
+    findAllCountryCurrencies,
+    createCountryTelephonePrefix,
+    deleteCountryTelephonePrefix,
+    findCountryTelephonePrefix,
+    findAllCountryTelephonePrefixes
+  )
 
   private def handleErrors[T](f: Future[T]): Future[Either[String, T]] =
     f.transform {

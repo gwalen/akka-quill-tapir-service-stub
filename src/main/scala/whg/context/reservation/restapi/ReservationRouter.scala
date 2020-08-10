@@ -27,24 +27,13 @@ class ReservationRouter(reservationService: ReservationService)(implicit ex: Exe
     extendReservation.toRoute((reservationService.extendReservation _).andThen(handleErrors)) ~
     cancelReservation.toRoute((reservationService.cancelReservation _).andThen(handleErrors))
 
-  val docsRoutes: Route = new SwaggerAkka(openapiYamlDocumentation).routes
-
-  val routesWithDocs: Route = routes ~ docsRoutes
-
-  def openapiYamlDocumentation: String = {
-    import sttp.tapir.docs.openapi._
-    import sttp.tapir.openapi.circe.yaml._
-
-    // interpreting the endpoint description to generate yaml openapi documentation
-    val docs = List(
-      createReservation,
-      findReservationsForClient,
-      findReservations,
-      extendReservation,
-      cancelReservation
-    ).toOpenAPI("Ticket reservations", "1.0")
-    docs.toYaml
-  }
+  val endpoints = List(
+    createReservation,
+    findReservationsForClient,
+    findReservations,
+    extendReservation,
+    cancelReservation
+  )
 
   private def handleErrors[T](f: Future[T]): Future[Either[String, T]] =
     f.transform {

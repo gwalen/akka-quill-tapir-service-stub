@@ -11,29 +11,55 @@ import whg.context.country.domain.dto.CountryTelephonePrefixCreateRequest
 
 object CountryEndpoints {
 
-  val baseEndpoint: Endpoint[Unit, String, Unit, Nothing] = endpoint.errorOut(stringBody).in("countries")
+  private val tag = "country"
+
+  val baseEndpoint: Endpoint[Unit, String, Unit, Nothing] = endpoint.errorOut(stringBody).in("api").in("countries")
 
   val createCountryCurrency: Endpoint[CountryCurrencyCreateRequest, String, Done, Nothing] = baseEndpoint.post
+    .in("currencies")
     .in(jsonBody[CountryCurrencyCreateRequest])
     .out(jsonBody[Done])
+    .tag(tag)
+    .name("create xxx")
 
   val deleteCountryCurrency: Endpoint[String, String, Done, Nothing] = baseEndpoint.delete
-    .in(path[String])
+    .in("currencies")
+    .in(path[String]("country"))
     .out(jsonBody[Done])
+    .tag(tag)
+
 
   val findCountryCurrency: Endpoint[String, String, Option[CountryCurrency], Nothing] = baseEndpoint.get
-    .in(path[String]("currency"))
+    .in("currencies")
+    .in(path[String]("country"))
     .out(jsonBody[Option[CountryCurrency]])
+    .tag(tag)
+
+  val findAllCountryCurrencies: Endpoint[Unit, String, List[CountryCurrency], Nothing] = baseEndpoint.get
+    .in("currencies")
+    .out(jsonBody[List[CountryCurrency]])
+    .tag(tag)
 
   val createCountryTelephonePrefix: Endpoint[CountryTelephonePrefixCreateRequest, String, Done, Nothing] = baseEndpoint.post
+    .in("telephoneprefixes")
     .in(jsonBody[CountryTelephonePrefixCreateRequest])
     .out(jsonBody[Done])
+    .tag(tag)
 
   val deleteCountryTelephonePrefix: Endpoint[String, String, Done, Nothing] = baseEndpoint.delete
-    .in(path[String])
+    .in("telephoneprefixes")
+    .in(path[String]("country"))
     .out(jsonBody[Done])
+    .tag(tag)
 
   val findCountryTelephonePrefix: Endpoint[String, String, Option[CountryTelephonePrefix], Nothing] = baseEndpoint.get
-    .in(path[String]("currency"))
+    .in("telephoneprefixes")
+    .in(path[String]("country"))
     .out(jsonBody[Option[CountryTelephonePrefix]])
+    .tag(tag)
+
+  val findAllCountryTelephonePrefixes: Endpoint[Unit, String, List[CountryTelephonePrefix], Nothing] = baseEndpoint.get
+    .in("telephoneprefixes")
+    .out(jsonBody[List[CountryTelephonePrefix]])
+    .tag(tag)
 }

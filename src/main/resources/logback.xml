@@ -13,8 +13,10 @@
 <!--        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">-->
 <!--            <providers>-->
 <!--                <timestamp/>-->
+<!--                <level/>-->
 <!--                <loggerName/>-->
 <!--                <threadName/>-->
+<!--                <message/>-->
 <!--                <logstashMarkers/>-->
 <!--                <stackTrace/>-->
 <!--            </providers>-->

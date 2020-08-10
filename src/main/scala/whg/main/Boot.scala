@@ -15,12 +15,14 @@ trait Setup
     with DatabaseComponents
     with CommonLayer {
 
+  lazy val docsRoutes: Route = openApiDocsGenerator.docRoutes(countryRouter.endpoints ++ reservationRouter.endpoints)
+
   lazy val apiRoutes: Route =
-    pathPrefix("api") {
-      healthRouter.routes ~
-      countryRouter.routesWithDocs ~
-      reservationRouter.routesWithDocs
-    }
+    healthRouter.routes ~
+    countryRouter.routes ~
+    reservationRouter.routes ~
+    docsRoutes
+
 }
 
 object Boot extends App with Setup {

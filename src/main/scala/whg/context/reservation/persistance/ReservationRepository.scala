@@ -22,8 +22,8 @@ class ReservationRepository(postgresDriver: PostgresDriver)(implicit ec: Executi
    */
   def insertWithMaxReservationCheck(reservation: Reservation): Future[Long] = {
     val queries = for {
-      affected <- updateWithCounterIncrementQuery2(reservation.eventId, reservation.ticketCount)
-      _        <- ctx.runIO(query[Reservation].insert(lift(reservation)))
+      affected <- updateWithCounterIncrementQuery(reservation.eventId, reservation.ticketCount)
+      _        <- if(affected > 0) ctx.runIO(query[Reservation].insert(lift(reservation)).returningGenerated(_.id)) else IO.successful()
     } yield affected
     performIO(queries.transactional)
   }
@@ -31,7 +31,7 @@ class ReservationRepository(postgresDriver: PostgresDriver)(implicit ec: Executi
   def remove(reservationId: Long): Future[Long] = {
     val queries = for {
       reservationToCancel <- ctx.runIO(query[Reservation].filter(r => r.id == lift(reservationId))).map(reservations => reservations.head)
-      affected            <- updateWithCounterIncrementQuery2(reservationToCancel.eventId, -reservationToCancel.ticketCount)
+      affected            <- updateWithCounterIncrementQuery(reservationToCancel.eventId, -reservationToCancel.ticketCount)
       _                   <- ctx.runIO(query[Reservation].filter(r => r.id == lift(reservationId)).delete)
     } yield affected
     performIO(queries.transactional)
@@ -52,7 +52,7 @@ class ReservationRepository(postgresDriver: PostgresDriver)(implicit ec: Executi
   def findReservationCounter(eventId: Long): Future[Option[ReservationCounter]] =
     ctx.run(query[ReservationCounter].filter(rc => rc.eventId == lift(eventId))).map(_.headOption)
 
-  private def updateWithCounterIncrementQuery2(eventId: Long, ticketsToReserve: Long): IO[Long, Effect.Write] = {
+  private def updateWithCounterIncrementQuery(eventId: Long, ticketsToReserve: Long): IO[Long, Effect.Write] = {
     ctx.runIO(
       query[ReservationCounter]
         .filter(rc => rc.eventId == lift(eventId) && rc.maxTickets >= rc.reservedTickets + lift(ticketsToReserve))

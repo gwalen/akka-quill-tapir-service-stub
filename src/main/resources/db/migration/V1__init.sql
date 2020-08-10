@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS reservations (
+CREATE TABLE IF NOT EXISTS reservation (
   id           SERIAL PRIMARY KEY,
   client_id    BIGINT NOT NULL,
   event_id     BIGINT NOT NULL,
@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS reservations (
   expiry_date  DATE  NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS reservation_counters (
+CREATE TABLE IF NOT EXISTS reservation_counter (
   event_id   BIGINT  PRIMARY KEY,
   max_tickets INT NOT NULL,
   reserved_tickets INT NOT NULL,
@@ -26,11 +26,11 @@ create TABLE IF NOT EXISTS country_currency (
 );
 
 -- test data
-insert into reservation_counters(event_id, max_tickets, reserved_tickets, max_tickets_per_client) VALUES(1000, 500, 0, 5);
-insert into reservation_counters(event_id, max_tickets, reserved_tickets, max_tickets_per_client) VALUES(1001, 100, 0, 10);
-insert into reservations(id, client_id, event_id, ticket_count, expiry_date) values(10001, 100, 1000, 1, '2020-06-29 23:38:12');
-insert into reservations(id, client_id, event_id, ticket_count, expiry_date) values(10002, 101, 1000, 1, '2020-06-29 23:38:12');
-insert into reservations(id, client_id, event_id, ticket_count, expiry_date) values(10003, 101, 1001, 1, '2020-06-29 23:38:12');
+insert into reservation_counter(event_id, max_tickets, reserved_tickets, max_tickets_per_client) VALUES(1000, 500, 0, 5);
+insert into reservation_counter(event_id, max_tickets, reserved_tickets, max_tickets_per_client) VALUES(1001, 100, 0, 10);
+insert into reservation(id, client_id, event_id, ticket_count, expiry_date) values(10001, 100, 1000, 1, '2020-06-29 23:38:12');
+insert into reservation(id, client_id, event_id, ticket_count, expiry_date) values(10002, 101, 1000, 1, '2020-06-29 23:38:12');
+insert into reservation(id, client_id, event_id, ticket_count, expiry_date) values(10003, 101, 1001, 1, '2020-06-29 23:38:12');
 
 insert into country_telephone_prefix(country, prefix) values('PL', '48');
 insert into country_telephone_prefix(country, prefix) values('NZ', '64');

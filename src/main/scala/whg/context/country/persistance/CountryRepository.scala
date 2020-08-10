@@ -35,6 +35,9 @@ class CountryRepository(postgresDriver: PostgresDriver)(implicit ec: ExecutionCo
     ctx.run(q).map(result => result.headOption)
   }
 
+  def findAllCurrencies(): Future[List[CountryCurrency]] =
+    ctx.run(query[CountryCurrency])
+
   def insertTelephonePrefix(countryTelephonePrefix: CountryTelephonePrefix): Future[Done] = {
     //Quoting is implicit when writing a query in a run statement.
     ctx.run(query[CountryTelephonePrefix].insert(lift(countryTelephonePrefix))).map(_ => Done)
@@ -48,6 +51,9 @@ class CountryRepository(postgresDriver: PostgresDriver)(implicit ec: ExecutionCo
     ctx.run(query[CountryTelephonePrefix].filter(cc => cc.country == lift(country)))
       .map(result => result.headOption)
   }
+
+  def findAllTelephonePrefixes(): Future[List[CountryTelephonePrefix]] =
+    ctx.run(query[CountryTelephonePrefix])
 }
 
 

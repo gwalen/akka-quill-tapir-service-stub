@@ -32,6 +32,12 @@ class CountryService(countryRepository: CountryRepository)(implicit ec: Executio
     countryRepository.findCurrency(country)
   }
 
+  //unit type arg added to be able to chain Functions in CountryRouter (Function1 with andThen() method)
+  def findAllCountryCurrencies(x: Unit): Future[List[CountryCurrency]] = {
+    logger.info(s"Find All country currencies")
+    countryRepository.findAllCurrencies()
+  }
+
   def createCountryTelephonePrefix(request: CountryTelephonePrefixCreateRequest): Future[Done] = {
     logger.info(s"Create country tel prefix: ${request.countryTelephonePrefix}")
     countryRepository.insertTelephonePrefix(request.countryTelephonePrefix)
@@ -47,11 +53,10 @@ class CountryService(countryRepository: CountryRepository)(implicit ec: Executio
     countryRepository.findTelephonePrefix(country)
   }
 
-// TODO:
-// - add find methods for all currencies and all prefixes
-// - test json logging
-// test reservations insert/update logic
-// test swagger open api
-// create read me with list of technologies and swagger open api usage
+  //unit type arg added to be able to chain Functions in CountryRouter (Function1 with andThen() method)
+  def findAllTelephonePrefixes(x: Unit): Future[List[CountryTelephonePrefix]] = {
+    logger.info(s"Find all country tel prefixes")
+    countryRepository.findAllTelephonePrefixes()
+  }
 
 }
