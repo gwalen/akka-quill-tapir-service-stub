@@ -2,23 +2,29 @@ package whg.context.country.persistance
 
 import akka.Done
 import whg.common.database.PostgresDriver
+import whg.common.threadpool.ThreadPools
 import whg.context.country.domain.CountryCurrency
 import whg.context.country.domain.CountryTelephonePrefix
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-//TODO: use Cats IO for async execution
-
-class CountryRepository(postgresDriver: PostgresDriver)(implicit ec: ExecutionContext) {
-  import postgresDriver._
+class CountryRepository(postgresDriver: PostgresDriver, threadPools: ThreadPools) {
+  import postgresDriver.ctx
   import ctx._
+  import threadPools.jdbc
 
   def insertCurrency(countryCurrency: CountryCurrency): Future[Done] = {
     val q = quote {
       query[CountryCurrency].insert(lift(countryCurrency))
     }
     ctx.run(q).map(_ => Done)
+  }
+
+  def insertCurrency2(countryCurrency: CountryCurrency): Future[Long] = {
+    val q = quote {
+      query[CountryCurrency].insert(lift(countryCurrency))
+    }
+    ctx.run(q)
   }
 
   def deleteCurrency(country: String): Future[Done] = {

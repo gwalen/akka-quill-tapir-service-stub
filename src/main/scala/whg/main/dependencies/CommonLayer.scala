@@ -3,6 +3,7 @@ package whg.main.dependencies
 import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
 import com.typesafe.config.{Config, ConfigFactory}
+import whg.common.threadpool.ThreadPools
 import whg.main.config._
 
 import scala.concurrent.ExecutionContext
@@ -26,5 +27,7 @@ trait CommonLayer { self =>
     config.getInt("http.port"),
     config.getString("http.hostname")
   )
+
+  lazy val threadPools = new ThreadPools(executor)
 
 }

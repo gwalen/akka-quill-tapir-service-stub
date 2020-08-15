@@ -9,6 +9,6 @@ trait DatabaseComponents { self: CommonLayer =>
 
   lazy val postgresDriver: PostgresDriver = new PostgresDriver()
 
-  lazy val countryRepository: CountryRepository              = wire[CountryRepository]
+  lazy val countryRepository: CountryRepository         = wire[CountryRepository]
   lazy val reservationRepository: ReservationRepository = wire[ReservationRepository]
 }

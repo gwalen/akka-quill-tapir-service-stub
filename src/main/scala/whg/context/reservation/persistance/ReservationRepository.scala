@@ -4,14 +4,16 @@ import java.time.Instant
 import java.util.Date
 
 import whg.common.database.PostgresDriver
+import whg.common.threadpool.ThreadPools
 import whg.context.reservation.domian._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-class ReservationRepository(postgresDriver: PostgresDriver)(implicit ec: ExecutionContext) {
+class ReservationRepository(postgresDriver: PostgresDriver, threadPools: ThreadPools) {
   import postgresDriver._
   import ctx._
+  import threadPools.jdbc
 
   private implicit val encodeInstant: MappedEncoding[Instant, Date] = MappedEncoding[Instant, Date](Date.from)
   private implicit val decodeInstant: MappedEncoding[Date, Instant] = MappedEncoding[Date, Instant](_.toInstant)
