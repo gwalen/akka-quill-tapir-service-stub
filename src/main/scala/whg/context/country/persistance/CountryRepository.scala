@@ -1,17 +1,17 @@
 package whg.context.country.persistance
 
 import akka.Done
-import whg.common.database.PostgresDriver
+import whg.common.database.DatabaseDriver
 import whg.common.threadpool.ThreadPools
 import whg.context.country.domain.CountryCurrency
 import whg.context.country.domain.CountryTelephonePrefix
 
 import scala.concurrent.Future
 
-class CountryRepository(postgresDriver: PostgresDriver, threadPools: ThreadPools) {
+class CountryRepository(postgresDriver: DatabaseDriver, threadPools: ThreadPools) {
   import postgresDriver.ctx
   import ctx._
-  import threadPools.jdbc
+  import threadPools.jdbcEc
 
   def insertCurrency(countryCurrency: CountryCurrency): Future[Done] = {
     val q = quote {

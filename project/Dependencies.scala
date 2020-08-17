@@ -5,6 +5,7 @@ object Versions {
   val akkaHttpV       = "10.1.12"
   val postgresqlV     = "42.2.8"
   val quillV          = "3.5.2"
+  val doobieV         = "0.9.0"
   val flywayV         = "6.4.4"
   val macwireV        = "2.3.6"
   val logbackV        = "1.2.3"
@@ -23,7 +24,7 @@ object Dependencies {
   import Versions._
 
   lazy val allDependencies: Seq[ModuleID] =
-    akkaBase ++ akkaHttp ++ macwire ++ logback ++ circe ++ tapir ++ quill ++ others ++ test
+    akkaBase ++ akkaHttp ++ macwire ++ logback ++ circe ++ tapir ++ db ++ others ++ test
 
   private lazy val akkaBase = Seq(
     "com.typesafe.akka" %% "akka-actor"  % akkaV,
@@ -39,9 +40,13 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-stream-testkit"  % akkaV % "test"
   )
 
-  private lazy val quill = Seq(
+  private lazy val db = Seq(
     "org.postgresql" % "postgresql"            % postgresqlV,
-    "io.getquill"    %% "quill-async-postgres" % quillV
+    "io.getquill"    %% "quill-async-postgres" % quillV,
+    "org.tpolecat"   %% "doobie-quill"         % doobieV,
+    "org.tpolecat"   %% "doobie-core"          % doobieV,
+    "org.tpolecat"   %% "doobie-h2"            % doobieV,
+    "org.tpolecat"   %% "doobie-hikari"        % doobieV
   )
 
   private lazy val macwire = Seq(
@@ -56,8 +61,8 @@ object Dependencies {
   )
 
   private lazy val test = Seq(
-    "org.scalatest"  %% "scalatest" % scalaTestV % "test",
-    "org.scalamock"  %% "scalamock" % scalaMockV % "test"
+    "org.scalatest" %% "scalatest" % scalaTestV % "test",
+    "org.scalamock" %% "scalamock" % scalaMockV % "test"
   )
 
   private lazy val tapir = Seq(
@@ -77,9 +82,9 @@ object Dependencies {
   )
 
   private lazy val others = Seq(
-    "com.beachape"      %% "enumeratum"      % enumeratumV,
-    "org.typelevel"     %% "cats-core"       % catsV,
-    "org.flywaydb"      % "flyway-core"      % flywayV,
-    "commons-io"        % "commons-io"       % commonsIoV
+    "com.beachape"  %% "enumeratum" % enumeratumV,
+    "org.typelevel" %% "cats-core"  % catsV,
+    "org.flywaydb"  % "flyway-core" % flywayV,
+    "commons-io"    % "commons-io"  % commonsIoV
   )
 }

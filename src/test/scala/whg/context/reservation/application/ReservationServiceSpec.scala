@@ -8,7 +8,7 @@ import org.scalamock.scalatest.MockFactory
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import whg.common.database.PostgresDriver
+import whg.common.database.DatabaseDriver
 import whg.context.reservation.domian.Reservation
 import whg.context.reservation.domian.ReservationCounter
 import whg.context.reservation.domian.dto.ReservationCreateRequest
@@ -24,7 +24,7 @@ class ReservationServiceSpec extends AnyFlatSpec with Matchers with MockFactory 
   import ReservationServiceSpec._
 
   it should "return success during reservation when no error" in {
-    val postgresDriverStub = stub[PostgresDriver]
+    val postgresDriverStub = stub[DatabaseDriver]
 
     class ReservationRepositoryTest extends ReservationRepository(postgresDriverStub)
 
@@ -38,7 +38,7 @@ class ReservationServiceSpec extends AnyFlatSpec with Matchers with MockFactory 
   }
 
   it should "return failure during reservation client has already created a reservation for an event" in {
-    val postgresDriverStub = stub[PostgresDriver]
+    val postgresDriverStub = stub[DatabaseDriver]
 
     class ReservationRepositoryTest extends ReservationRepository(postgresDriverStub)
 
@@ -53,7 +53,7 @@ class ReservationServiceSpec extends AnyFlatSpec with Matchers with MockFactory 
   }
 
   it should "return failure during reservation when insert affected rows == 0 (update condition was not met - not enough tickets)" in {
-    val postgresDriverStub = stub[PostgresDriver]
+    val postgresDriverStub = stub[DatabaseDriver]
     class ReservationRepositoryTest extends ReservationRepository(postgresDriverStub)
     val reservationRepositoryStub = stub[ReservationRepositoryTest]
     val reservationService = new ReservationService(reservationRepositoryStub)
@@ -66,7 +66,7 @@ class ReservationServiceSpec extends AnyFlatSpec with Matchers with MockFactory 
   }
 
   it should "return failure during reservation when no reservation counter found" in {
-    val postgresDriverStub = stub[PostgresDriver]
+    val postgresDriverStub = stub[DatabaseDriver]
     class ReservationRepositoryTest extends ReservationRepository(postgresDriverStub)
     val reservationRepositoryStub = stub[ReservationRepositoryTest]
     val reservationService = new ReservationService(reservationRepositoryStub)
@@ -78,7 +78,7 @@ class ReservationServiceSpec extends AnyFlatSpec with Matchers with MockFactory 
   }
 
   it should "return failure during reservation when clients wants to many tickets" in {
-    val postgresDriverStub = stub[PostgresDriver]
+    val postgresDriverStub = stub[DatabaseDriver]
 
     class ReservationRepositoryTest extends ReservationRepository(postgresDriverStub)
 
@@ -92,7 +92,7 @@ class ReservationServiceSpec extends AnyFlatSpec with Matchers with MockFactory 
   }
 
   it should "return correct result when removal was successful" in {
-    val postgresDriverStub = stub[PostgresDriver]
+    val postgresDriverStub = stub[DatabaseDriver]
     class ReservationRepositoryTest extends ReservationRepository(postgresDriverStub)
     val reservationRepositoryStub = stub[ReservationRepositoryTest]
     val reservationService = new ReservationService(reservationRepositoryStub)
@@ -102,7 +102,7 @@ class ReservationServiceSpec extends AnyFlatSpec with Matchers with MockFactory 
   }
 
   it should "return correct result when update of expiry was successful" in {
-    val postgresDriverStub = stub[PostgresDriver]
+    val postgresDriverStub = stub[DatabaseDriver]
     class ReservationRepositoryTest extends ReservationRepository(postgresDriverStub)
     val reservationRepositoryStub = stub[ReservationRepositoryTest]
     val reservationService = new ReservationService(reservationRepositoryStub)
@@ -114,7 +114,7 @@ class ReservationServiceSpec extends AnyFlatSpec with Matchers with MockFactory 
   }
 
   it should "return correct result when find query was successful" in {
-    val postgresDriverStub = stub[PostgresDriver]
+    val postgresDriverStub = stub[DatabaseDriver]
     class ReservationRepositoryTest extends ReservationRepository(postgresDriverStub)
     val reservationRepositoryStub = stub[ReservationRepositoryTest]
     val reservationService = new ReservationService(reservationRepositoryStub)

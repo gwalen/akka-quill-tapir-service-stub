@@ -2,6 +2,8 @@ package whg.main.dependencies
 
 import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
+import cats.effect.ContextShift
+import cats.effect.IO
 import com.typesafe.config.{Config, ConfigFactory}
 import whg.common.threadpool.ThreadPools
 import whg.main.config._
@@ -12,11 +14,13 @@ trait CommonLayer { self =>
 
   implicit val system: ActorSystem
   implicit def executor: ExecutionContext
+  implicit val cs: ContextShift[IO]
 
   lazy val config: Config                  = ConfigFactory.load()
   implicit lazy val logger: LoggingAdapter = system.log
 
   lazy val dbConfig = DatabaseConfig(
+    config.getString("db.ctx.driver"),
     config.getString("db.flyway.dburl"),
     config.getString("db.ctx.user"),
     config.getString("db.ctx.password"),

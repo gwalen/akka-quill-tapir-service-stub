@@ -3,6 +3,13 @@ name         := "lookup-service"
 organization := "whg"
 version      := "1.0.0"
 scalaVersion := "2.13.2"
+scalacOptions ++= Seq(
+  "-feature",
+  "-deprecation",
+  //"-Xfatal-warnings",
+  //"-Ywarn-value-discard",
+  "-Xlint:missing-interpolator"
+)
 
 resolvers ++= Seq(
   Resolver.typesafeRepo("releases")
@@ -24,7 +31,7 @@ datadogAgentPort := "8126"
 datadogAgentHost := dd_host
 
 //docker file settings
-dockerExposedPorts ++= Seq(8080)
+dockerExposedPorts ++= Seq(8080, 8126)
 dockerBaseImage := "adoptopenjdk/openjdk11:slim"
 dockerUpdateLatest := true
 
