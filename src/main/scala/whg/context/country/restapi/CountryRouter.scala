@@ -3,11 +3,10 @@ package whg.context.country.restapi
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
+import cats.effect.IO
 import org.slf4j.LoggerFactory
-
 import sttp.tapir.server.akkahttp._
 import sttp.tapir.swagger.akkahttp.SwaggerAkka
-
 import whg.context.country.application.CountryService
 
 import scala.concurrent.ExecutionContext
@@ -22,15 +21,17 @@ class CountryRouter(countryService: CountryService)(implicit ex: ExecutionContex
 
   private val logger = LoggerFactory.getLogger(getClass)
 
-  val routes: Route =
-    createCountryCurrency.toRoute((countryService.createCountryCurrency _).andThen(handleErrors)) ~
-    deleteCountryCurrency.toRoute((countryService.deleteCountryCurrency _).andThen(handleErrors)) ~
-    findCountryCurrency.toRoute((countryService.findCountryCurrency _).andThen(handleErrors)) ~
-    findAllCountryCurrencies.toRoute((countryService.findAllCountryCurrencies _).andThen(handleErrors)) ~
-    createCountryTelephonePrefix.toRoute((countryService.createCountryTelephonePrefix _).andThen(handleErrors)) ~
-    deleteCountryTelephonePrefix.toRoute((countryService.deleteCountryTelephonePrefix _).andThen(handleErrors)) ~
-    findCountryTelephonePrefix.toRoute((countryService.findCountryTelephonePrefix _).andThen(handleErrors)) ~
-    findAllCountryTelephonePrefixes.toRoute((countryService.findAllTelephonePrefixes _).andThen(handleErrors))
+  val routes: Route = {
+    // TODO: remove "_"
+    createCountryCurrency.toRoute(toFuture(countryService.createCountryCurrency _).andThen(handleErrors)) ~
+    deleteCountryCurrency.toRoute(toFuture(countryService.deleteCountryCurrency _).andThen(handleErrors)) ~
+    findCountryCurrency.toRoute(toFuture(countryService.findCountryCurrency _).andThen(handleErrors)) ~
+    findAllCountryCurrencies.toRoute(toFuture(countryService.findAllCountryCurrencies _).andThen(handleErrors)) ~
+    createCountryTelephonePrefix.toRoute(toFuture(countryService.createCountryTelephonePrefix _).andThen(handleErrors)) ~
+    deleteCountryTelephonePrefix.toRoute(toFuture(countryService.deleteCountryTelephonePrefix _).andThen(handleErrors)) ~
+    findCountryTelephonePrefix.toRoute(toFuture(countryService.findCountryTelephonePrefix _).andThen(handleErrors)) ~
+    findAllCountryTelephonePrefixes.toRoute(toFuture(countryService.findAllTelephonePrefixes _).andThen(handleErrors))
+  }
 
   val endpoints = List(
     createCountryCurrency,
@@ -42,7 +43,9 @@ class CountryRouter(countryService: CountryService)(implicit ex: ExecutionContex
     findCountryTelephonePrefix,
     findAllCountryTelephonePrefixes
   )
-
+  private def toFuture[M, K](f: M => IO[K]): M => Future[K] = {
+    in => f(in).unsafeToFuture()
+  }
   private def handleErrors[T](f: Future[T]): Future[Either[String, T]] =
     f.transform {
       case Success(v) => Success(Right(v))

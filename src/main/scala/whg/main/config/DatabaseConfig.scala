@@ -1,7 +1,7 @@
 package whg.main.config
 
 case class DatabaseConfig(
-  driver: String,
+//  driver: String,
   url: String,
   user: String,
   password: String,

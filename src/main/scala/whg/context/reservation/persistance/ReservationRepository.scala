@@ -4,7 +4,11 @@ import java.time.Instant
 import java.util.Date
 
 import akka.Done
+import cats.effect.IO
 import cats.free.Free
+import cats.implicits.catsSyntaxApplicativeId
+import cats.implicits._
+import doobie.ConnectionIO
 import doobie.free.connection
 import io.getquill.Action
 import io.getquill.Update
@@ -30,18 +34,9 @@ class ReservationRepository(postgresDriver: DatabaseDriver, threadPools: ThreadP
    * to make reservations atomic with max reserved ticket number check we have an extra table reservation_counters
    */
 
-  def emptyQuery() = query[Reservation]
+  def emptyQuery(): ConnectionIO[Unit] = ().pure[ConnectionIO]
 
-  def insertWithMaxReservationCheck(reservation: Reservation): Long = {
-//    val queries = quote {
-//      for {
-//        a <- query[ReservationCounter]
-//              .filter(rc => rc.eventId == lift(reservation.eventId) && rc.maxTickets >= rc.reservedTickets + lift(reservation.ticketCount))
-//              .update(rc => rc.reservedTickets -> (rc.reservedTickets + lift(reservation.ticketCount)))
-//        _ <- query[Reservation].insert(lift(reservation)).returningGenerated(_.id)
-//      } yield a
-//    }
-
+  def insertWithMaxReservationCheck_experimental(reservation: Reservation): IO[Long] = {
     val q1 = quote {
       query[ReservationCounter]
         .filter(rc => rc.eventId == lift(reservation.eventId) && rc.maxTickets >= rc.reservedTickets + lift(reservation.ticketCount))
@@ -51,11 +46,9 @@ class ReservationRepository(postgresDriver: DatabaseDriver, threadPools: ThreadP
     val q2 = quote {
       query[Reservation].insert(lift(reservation)).returningGenerated(_.id)
     }
-
     doobieCtx.run(q1).transact(xa)
 
-
-    val queries: Free[connection.ConnectionOp, Long] =
+    val queries =
       for {
         a <- doobieCtx.run(q1)
         _ <- doobieCtx.run(q2)
@@ -65,54 +58,47 @@ class ReservationRepository(postgresDriver: DatabaseDriver, threadPools: ThreadP
     queries.transact(xa)
   }
 
-  def insertWithMaxReservationCheck(reservation: Reservation): Long = {
+  def insertWithMaxReservationCheck(reservation: Reservation): IO[Long] = {
     val queries = for {
-      affected <- updateWithCounterIncrementQuery2(reservation.eventId, reservation.ticketCount)
-      _        <- if(affected > 0) query[Reservation].insert(lift(reservation)).returningGenerated(_.id) else emptyQuery()
+      affected <- updateWithCounterIncrementQuery(reservation.eventId, reservation.ticketCount)
+      _        <- if(affected > 0) doobieCtx.run(query[Reservation].insert(lift(reservation)).returningGenerated(_.id)) else emptyQuery()
     } yield affected
-    doobieCtx(queries).transac(xa)
+    queries.transact(xa)
   }
 
 
 
-  def remove(reservationId: Long): Long = {
-    val aa = ctx.runIO(query[Reservation].filter(r => r.id == lift(reservationId))).map(reservations => reservations.head)
+  def remove(reservationId: Long): IO[Long] = {
     val queries = for {
-      reservationToCancel <- ctx.runIO(query[Reservation].filter(r => r.id == lift(reservationId))).map(reservations => reservations.head)
+      reservationToCancel <- doobieCtx.run(query[Reservation].filter(r => r.id == lift(reservationId))).map(reservations => reservations.head)
       affected            <- updateWithCounterIncrementQuery(reservationToCancel.eventId, -reservationToCancel.ticketCount)
-      _                   <- ctx.runIO(query[Reservation].filter(r => r.id == lift(reservationId)).delete)
+      _                   <- doobieCtx.run(query[Reservation].filter(r => r.id == lift(reservationId)).delete)
     } yield affected
-    performIO(queries.transactional)
+    queries.transact(xa)
   }
 
-  def updateReservationExpiryDate(reservationId: Long, newExpiryDate: Instant): Future[Long] =
-    ctx.run(query[Reservation].filter(r => r.id == lift(reservationId)).update(r => r.expiryDate -> lift(newExpiryDate)))
+  def updateReservationExpiryDate(reservationId: Long, newExpiryDate: Instant): IO[Long] =
+    doobieCtx.run(query[Reservation].filter(r => r.id == lift(reservationId)).update(r => r.expiryDate -> lift(newExpiryDate))).transact(xa)
 
-  def findAllReservations(): Future[List[Reservation]] =
-    ctx.run(query[Reservation])
+  def findAllReservations(): IO[List[Reservation]] =
+    doobieCtx.run(query[Reservation]).transact(xa)
 
-  def findAllReservationsForEvent(eventId: Long): Future[List[Reservation]] =
-    ctx.run(query[Reservation].filter(r => r.eventId == lift(eventId)))
+  def findAllReservationsForEvent(eventId: Long): IO[List[Reservation]] =
+    doobieCtx.run(query[Reservation].filter(r => r.eventId == lift(eventId))).transact(xa)
 
-  def findReservationsForClient(eventId: Long, clientId: Long): Future[List[Reservation]] =
-    ctx.run(query[Reservation].filter(r => r.clientId == lift(clientId) && r.eventId == lift(eventId)))
+  def findReservationsForClient(eventId: Long, clientId: Long): IO[List[Reservation]] =
+    doobieCtx.run(query[Reservation].filter(r => r.clientId == lift(clientId) && r.eventId == lift(eventId))).transact(xa)
 
-  def findReservationCounter(eventId: Long): Future[Option[ReservationCounter]] =
-    ctx.run(query[ReservationCounter].filter(rc => rc.eventId == lift(eventId))).map(_.headOption)
+  def findReservationCounter(eventId: Long): IO[Option[ReservationCounter]] =
+    doobieCtx.run(query[ReservationCounter].filter(rc => rc.eventId == lift(eventId))).map(_.headOption).transact(xa)
 
-  private def updateWithCounterIncrementQuery(eventId: Long, ticketsToReserve: Long): Update[ReservationCounter] = {
-    query[ReservationCounter]
-      .filter(rc => rc.eventId == lift(eventId) && rc.maxTickets >= rc.reservedTickets + lift(ticketsToReserve))
-      .update(rc => rc.reservedTickets -> (rc.reservedTickets + lift(ticketsToReserve)))
-  }
-
-
-  private def updateWithCounterIncrementQuery2(eventId: Long, ticketsToReserve: Long): doobie.ConnectionIO[Long] = {
+  private def updateWithCounterIncrementQuery(eventId: Long, ticketsToReserve: Long): ConnectionIO[Long] = {
     doobieCtx.run(
       quote{
-      query[ReservationCounter]
-        .filter(rc => rc.eventId == lift(eventId) && rc.maxTickets >= rc.reservedTickets + lift(ticketsToReserve))
-        .update(rc => rc.reservedTickets -> (rc.reservedTickets + lift(ticketsToReserve)))}
+        query[ReservationCounter]
+          .filter(rc => rc.eventId == lift(eventId) && rc.maxTickets >= rc.reservedTickets + lift(ticketsToReserve))
+          .update(rc => rc.reservedTickets -> (rc.reservedTickets + lift(ticketsToReserve)))
+      }
     )
   }
 

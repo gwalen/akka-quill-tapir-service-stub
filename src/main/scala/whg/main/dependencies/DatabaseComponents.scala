@@ -7,7 +7,7 @@ import whg.context.reservation.persistance.ReservationRepository
 
 trait DatabaseComponents { self: CommonLayer =>
 
-  lazy val postgresDriver: DatabaseDriver = new DatabaseDriver()
+  lazy val postgresDriver: DatabaseDriver = wire[DatabaseDriver]
 
   lazy val countryRepository: CountryRepository         = wire[CountryRepository]
   lazy val reservationRepository: ReservationRepository = wire[ReservationRepository]

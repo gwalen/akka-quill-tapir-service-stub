@@ -1,65 +1,69 @@
 package whg.context.country.persistance
 
 import akka.Done
+import cats.effect.IO
 import whg.common.database.DatabaseDriver
 import whg.common.threadpool.ThreadPools
 import whg.context.country.domain.CountryCurrency
 import whg.context.country.domain.CountryTelephonePrefix
 
-import scala.concurrent.Future
+import cats.implicits._
+import doobie.ConnectionIO
+import doobie.implicits._
 
+// TODO: remove thread pool add
 class CountryRepository(postgresDriver: DatabaseDriver, threadPools: ThreadPools) {
-  import postgresDriver.ctx
-  import ctx._
-  import threadPools.jdbcEc
+  import postgresDriver._
+  import doobieCtx._
 
-  def insertCurrency(countryCurrency: CountryCurrency): Future[Done] = {
+  def insertCurrency(countryCurrency: CountryCurrency): IO[Done] = {
     val q = quote {
       query[CountryCurrency].insert(lift(countryCurrency))
     }
-    ctx.run(q).map(_ => Done)
+    doobieCtx.run(q).transact(xa).map(_ => Done)
   }
 
-  def insertCurrency2(countryCurrency: CountryCurrency): Future[Long] = {
+  def insertCurrency2(countryCurrency: CountryCurrency): IO[Long] = {
     val q = quote {
       query[CountryCurrency].insert(lift(countryCurrency))
     }
-    ctx.run(q)
+    doobieCtx.run(q).transact(xa)
   }
 
-  def deleteCurrency(country: String): Future[Done] = {
+  def deleteCurrency(country: String): IO[Done] = {
     val q = quote {
       query[CountryCurrency].filter(cc => cc.country == lift(country)).delete
     }
-    ctx.run(q).map(_ => Done)
+    doobieCtx.run(q).transact(xa).map(_ => Done)
   }
 
-  def findCurrency(country: String): Future[Option[CountryCurrency]] = {
+  def findCurrency(country: String): IO[Option[CountryCurrency]] = {
     val q = quote {
       query[CountryCurrency].filter(cc => cc.country == lift(country))
     }
-    ctx.run(q).map(result => result.headOption)
+    doobieCtx.run(q).transact(xa).map(result => result.headOption)
   }
 
-  def findAllCurrencies(): Future[List[CountryCurrency]] =
-    ctx.run(query[CountryCurrency])
+  def findAllCurrencies(): IO[List[CountryCurrency]] =
+    doobieCtx.run(query[CountryCurrency]).transact(xa)
 
-  def insertTelephonePrefix(countryTelephonePrefix: CountryTelephonePrefix): Future[Done] = {
+  def insertTelephonePrefix(countryTelephonePrefix: CountryTelephonePrefix): IO[Done] = {
     //Quoting is implicit when writing a query in a run statement.
-    ctx.run(query[CountryTelephonePrefix].insert(lift(countryTelephonePrefix))).map(_ => Done)
+    doobieCtx.run(query[CountryTelephonePrefix].insert(lift(countryTelephonePrefix))).transact(xa).map(_ => Done)
   }
 
-  def deleteTelephonePrefix(country: String): Future[Done] = {
-    ctx.run(query[CountryTelephonePrefix].filter(cc => cc.country == lift(country)).delete).map(_ => Done)
+  def deleteTelephonePrefix(country: String): IO[Done] = {
+    doobieCtx.run(query[CountryTelephonePrefix].filter(cc => cc.country == lift(country)).delete).transact(xa).map(_ => Done)
   }
 
-  def findTelephonePrefix(country: String): Future[Option[CountryTelephonePrefix]] = {
-    ctx.run(query[CountryTelephonePrefix].filter(cc => cc.country == lift(country)))
+  def findTelephonePrefix(country: String): IO[Option[CountryTelephonePrefix]] = {
+    doobieCtx.run(query[CountryTelephonePrefix].filter(cc => cc.country == lift(country)))
+      .transact(xa)
       .map(result => result.headOption)
   }
 
-  def findAllTelephonePrefixes(): Future[List[CountryTelephonePrefix]] =
-    ctx.run(query[CountryTelephonePrefix])
+  def findAllTelephonePrefixes(): IO[List[CountryTelephonePrefix]] =
+    doobieCtx.run(query[CountryTelephonePrefix]).transact(xa)
 }
 
 

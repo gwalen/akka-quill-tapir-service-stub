@@ -3,6 +3,7 @@ package whg.context.reservation.restapi
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
+import cats.effect.IO
 import whg.context.reservation.application.ReservationService
 import org.slf4j.LoggerFactory
 
@@ -21,11 +22,11 @@ class ReservationRouter(reservationService: ReservationService)(implicit ex: Exe
   private val logger = LoggerFactory.getLogger(getClass)
 
   val routes: Route =
-    createReservation.toRoute((reservationService.createReservation _)) ~
-    findReservations.toRoute((reservationService.findAllReservations _).andThen(handleErrors)) ~
-    findReservationsForClient.toRoute((reservationService.findReservations _).andThen(handleErrors)) ~
-    extendReservation.toRoute((reservationService.extendReservation _).andThen(handleErrors)) ~
-    cancelReservation.toRoute((reservationService.cancelReservation _).andThen(handleErrors))
+    createReservation.toRoute(toFuture(reservationService.createReservation)) ~
+    findReservations.toRoute(toFuture(reservationService.findAllReservations).andThen(handleErrors)) ~
+    findReservationsForClient.toRoute(toFuture(reservationService.findReservations _).andThen(handleErrors)) ~
+    extendReservation.toRoute(toFuture(reservationService.extendReservation _).andThen(handleErrors)) ~
+    cancelReservation.toRoute(toFuture(reservationService.cancelReservation _).andThen(handleErrors))
 
   val endpoints = List(
     createReservation,
@@ -34,6 +35,10 @@ class ReservationRouter(reservationService: ReservationService)(implicit ex: Exe
     extendReservation,
     cancelReservation
   )
+
+  private def toFuture[M, K](f: M => IO[K]): M => Future[K] = {
+    in => f(in).unsafeToFuture()
+  }
 
   private def handleErrors[T](f: Future[T]): Future[Either[String, T]] =
     f.transform {

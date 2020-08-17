@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS reservation_counter (
   max_tickets_per_client INT NOT NULL
 );
 
-create unique index uidx_event_id_client_id on reservations(event_id, client_id);
+create unique index uidx_event_id_client_id on reservation(event_id, client_id);
 
 create TABLE IF NOT EXISTS country_telephone_prefix (
   country    VARCHAR(5) NOT NULL PRIMARY KEY,

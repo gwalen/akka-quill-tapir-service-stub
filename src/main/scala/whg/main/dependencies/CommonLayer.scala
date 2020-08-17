@@ -20,10 +20,10 @@ trait CommonLayer { self =>
   implicit lazy val logger: LoggingAdapter = system.log
 
   lazy val dbConfig = DatabaseConfig(
-    config.getString("db.ctx.driver"),
+//    config.getString("db.ctx.driver"),
     config.getString("db.flyway.dburl"),
-    config.getString("db.ctx.user"),
-    config.getString("db.ctx.password"),
+    config.getString("db.ctx.dataSource.user"),
+    config.getString("db.ctx.dataSource.password"),
     config.getBoolean("db.flyway.migration-during-boot"))
 
   lazy val serverConfig: ServerConfig = ServerConfig(
