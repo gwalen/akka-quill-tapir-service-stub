@@ -22,15 +22,14 @@ class CountryRouter(countryService: CountryService)(implicit ex: ExecutionContex
   private val logger = LoggerFactory.getLogger(getClass)
 
   val routes: Route = {
-    // TODO: remove "_"
-    createCountryCurrency.toRoute(toFuture(countryService.createCountryCurrency _).andThen(handleErrors)) ~
-    deleteCountryCurrency.toRoute(toFuture(countryService.deleteCountryCurrency _).andThen(handleErrors)) ~
-    findCountryCurrency.toRoute(toFuture(countryService.findCountryCurrency _).andThen(handleErrors)) ~
-    findAllCountryCurrencies.toRoute(toFuture(countryService.findAllCountryCurrencies _).andThen(handleErrors)) ~
-    createCountryTelephonePrefix.toRoute(toFuture(countryService.createCountryTelephonePrefix _).andThen(handleErrors)) ~
-    deleteCountryTelephonePrefix.toRoute(toFuture(countryService.deleteCountryTelephonePrefix _).andThen(handleErrors)) ~
-    findCountryTelephonePrefix.toRoute(toFuture(countryService.findCountryTelephonePrefix _).andThen(handleErrors)) ~
-    findAllCountryTelephonePrefixes.toRoute(toFuture(countryService.findAllTelephonePrefixes _).andThen(handleErrors))
+    createCountryCurrency.toRoute(toFuture(countryService.createCountryCurrency).andThen(handleErrors)) ~
+    deleteCountryCurrency.toRoute(toFuture(countryService.deleteCountryCurrency).andThen(handleErrors)) ~
+    findCountryCurrency.toRoute(toFuture(countryService.findCountryCurrency).andThen(handleErrors)) ~
+    findAllCountryCurrencies.toRoute(toFuture(countryService.findAllCountryCurrencies).andThen(handleErrors)) ~
+    createCountryTelephonePrefix.toRoute(toFuture(countryService.createCountryTelephonePrefix).andThen(handleErrors)) ~
+    deleteCountryTelephonePrefix.toRoute(toFuture(countryService.deleteCountryTelephonePrefix).andThen(handleErrors)) ~
+    findCountryTelephonePrefix.toRoute(toFuture(countryService.findCountryTelephonePrefix).andThen(handleErrors)) ~
+    findAllCountryTelephonePrefixes.toRoute(toFuture(countryService.findAllTelephonePrefixes).andThen(handleErrors))
   }
 
   val endpoints = List(

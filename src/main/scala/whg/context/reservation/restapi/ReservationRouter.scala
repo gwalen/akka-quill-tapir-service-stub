@@ -15,7 +15,6 @@ import scala.concurrent.Future
 import scala.util.Failure
 import scala.util.Success
 
-
 class ReservationRouter(reservationService: ReservationService)(implicit ex: ExecutionContext, mat: Materializer) {
   import ReservationEndpoints._
 
@@ -24,9 +23,9 @@ class ReservationRouter(reservationService: ReservationService)(implicit ex: Exe
   val routes: Route =
     createReservation.toRoute(toFuture(reservationService.createReservation)) ~
     findReservations.toRoute(toFuture(reservationService.findAllReservations).andThen(handleErrors)) ~
-    findReservationsForClient.toRoute(toFuture(reservationService.findReservations _).andThen(handleErrors)) ~
-    extendReservation.toRoute(toFuture(reservationService.extendReservation _).andThen(handleErrors)) ~
-    cancelReservation.toRoute(toFuture(reservationService.cancelReservation _).andThen(handleErrors))
+    findReservationsForClient.toRoute(toFuture(reservationService.findReservations).andThen(handleErrors)) ~
+    extendReservation.toRoute(toFuture(reservationService.extendReservation).andThen(handleErrors)) ~
+    cancelReservation.toRoute(toFuture(reservationService.cancelReservation).andThen(handleErrors))
 
   val endpoints = List(
     createReservation,
